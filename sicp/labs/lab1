@@ -1,5 +1,0 @@
-'emeschay
-../../../../../../../Applications/Racket v7.9/collects/racket/trace.rkt:294:41: set!: assignment disallowed;
- cannot modify a constant
-  constant: pigl
-'emeschay
