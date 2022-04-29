@@ -1,7 +1,7 @@
 #lang planet dyoo/simply-scheme:2
 
 ; ----------------------------
-; Programming Project 1: Twenty-One
+; Programming Project 1: Twenty-One (with joker)
 ; ----------------------------
 
 (define (twenty-one strategy)
@@ -31,10 +31,12 @@
 		   (first (bf (bf deck)))
 		   (bf (bf (bf deck))))) )
 
+(define joker 'XX)
+
 (define (make-ordered-deck)
   (define (make-suit s)
     (every (lambda (rank) (word rank s)) '(A 2 3 4 5 6 7 8 9 10 J Q K)) )
-  (se (make-suit 'H) (make-suit 'S) (make-suit 'D) (make-suit 'C)) )
+  (se (make-suit 'H) (make-suit 'S) (make-suit 'D) (make-suit 'C) joker joker) )
 
 (define (make-deck)
   (define (shuffle deck size)
@@ -47,13 +49,29 @@
     	(move-card deck '() (random size)) ))
   (shuffle (make-ordered-deck) 52) )
 
-; Ex. 1 
+; Ex. 1
+(define (assert a b)
+  (if (equal? a b)
+      "True"
+      "False"))
+
+(define (rank card)
+  (bl card))
+
+(define (get-suit card)
+  (last card))
+
 (define (get-totals sent total)
+  (define (joker-val-iter count)
+    (if (> count 11)
+        '()
+        (se (get-totals (bf sent) (+ total count)) (joker-val-iter (+ count 1)))))
   (if (empty? sent)
       (se total)
-      (let ((val (bl (first sent))))
+      (let ((val (rank (first sent))))
         (cond ((number? val) (get-totals (bf sent) (+ total val)))
               ((member? val 'aA) (se (get-totals (bf sent) (+ total 11)) (get-totals (bf sent) (+ total 1))))
+              ((member? val 'xX) (joker-val-iter 1))
               ((member? val 'jqkJQK) (get-totals (bf sent) (+ total 10)))
               ))))
 
@@ -69,11 +87,13 @@
 (define (best-total hand)
   (find-best-total (get-totals hand 0)))
 
-;(best-total '(ad 8s))
-;(best-total '(ad 10s 5h))
-;(best-total '(ad as 9h))
-;(best-total '(jc qd 1s ad))
-
+; JOKER TEST
+(display "JOKER TEST - (get-totals '(XX) 0) => '(1 2 3 4 5 6 7 8 9 10 11): ")
+(assert (get-totals (se joker) 0) '(1 2 3 4 5 6 7 8 9 10 11))
+(display "JOKER TEST - (count (get-totals '(XX XX) 0)) => 121: ")
+(assert (count (get-totals (se joker joker) 0)) 121)
+(display "JOKER TEST - (best-total '(XX AS 3D)) => 21: ")
+(assert (best-total (se joker 'AS '3D)) 21)
 
 ; Ex. 2
 (define (stop-at-17 hand next-card)
@@ -91,9 +111,6 @@
   (iter 1 0))
 
 ; Ex. 4
-(define (rank card)
-  (bl card))
-
 (define (dealer-sensitive hand next-card)
   (define (first-cond val)
     (if (number? val)
@@ -112,8 +129,6 @@
   (lambda (hand next-card)
       (< (best-total hand) n)))
 ; Ex. 6
-(define (get-suit card)
-  (last card))
 (define (valentine hand next-card)
   ((suit-strategy 'h (stop-at 19) (stop-at 17)) hand next-card))
 ;(valentine '(ad as 9h) '10h)
@@ -125,8 +140,8 @@
       (if (member? suit suits)
           (pos-strategy hand next-card)
           (neg-strategy hand next-card)))))
-(display "valentine 10 trials: ")
-(play-n valentine 10)
+(display "valentine 20 trials: ")
+(play-n valentine 20)
 
 ; Ex. 8
 (define (majority strat-1 strat-2 strat-3)
@@ -135,8 +150,8 @@
       (or (and r1 r2) (and r1 r3) (and r2 r3))))
   ;(trace majority-strategy)
   majority-strategy)
-(display "majority 5 trials: ")
-(play-n (majority valentine dealer-sensitive (stop-at 10)) 5)
+(display "majority 10 trials: ")
+(play-n (majority valentine dealer-sensitive (stop-at 10)) 10)
 
 ; Ex. 9
 (define (reckless strategy)
